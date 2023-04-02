@@ -70,8 +70,8 @@ def get_html_element(annot_element):
         return html.escape(annot_element)
     elif isinstance(annot_element, dict):
         selected_token = st.session_state["selected_token"]
-        idxtoken_selected = selected_token == str(annot_element["idxtoken"])
-        govtoken_selected = selected_token == str(annot_element["idxgovernor"])
+        idxtoken_selected = selected_token == str(annot_element["token_id"])
+        govtoken_selected = selected_token == str(annot_element["gov_id"])
         return annotation(annot_element,
                           activated=(idxtoken_selected or govtoken_selected),
                           background="blue" if idxtoken_selected else ("green" if govtoken_selected else ""),
@@ -116,8 +116,7 @@ if clicked != "":
 
 w = st.session_state['selected_token']
 if w != "":
-    row = df_sentence[df_sentence["idxtoken"].astype(str) == str(w)].iloc[0].to_dict()
-    #used_cols = ["string", "lemma", "upos", "sentence", "string_beta", "lemma_beta", "definition", "detail", "morph_features", "idxtoken", "idxgovernor"]
+    row = df_sentence[df_sentence["token_id"].astype(str) == str(w)].iloc[0].to_dict()
     with col2:
         st.markdown(f"**Selected**: {row['string']}")
         st.markdown(f"**Lemma**: {row['lemma']}")

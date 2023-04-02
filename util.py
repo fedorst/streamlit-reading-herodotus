@@ -37,8 +37,8 @@ OPACITIES = [
 def annotation(annot_el, activated=False, background=None, color=None, style=None, annot_style=None):
     color_style = {}
     body = annot_el["string"]
-    id = annot_el["idxtoken"]
-    gov_id = annot_el["idxgovernor"]
+    id = annot_el["token_id"]
+    gov_id = annot_el["gov_id"]
     label = annot_el["upos"]
     if color:
         color_style['color'] = color
