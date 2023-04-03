@@ -1,4 +1,5 @@
 import streamlit as st
+
 from util import annotation
 import html
 from htbuilder import H, HtmlElement, styles
@@ -56,7 +57,6 @@ df_sentence = df_book[df_book.sentence == int(selected_sentence)]
 if 'selected_token' not in st.session_state:
     st.session_state['selected_token'] = ''
 
-
 def sentence_to_annot_text(df_sentence):
     annot_elements = []
     for i, row in df_sentence.iterrows():
@@ -73,7 +73,7 @@ def get_html_element(annot_element):
         idxtoken_selected = selected_token == str(annot_element["token_id"])
         govtoken_selected = selected_token == str(annot_element["gov_id"])
         return annotation(annot_element,
-                          activated=(idxtoken_selected or govtoken_selected),
+                          activated=idxtoken_selected or govtoken_selected,
                           background="blue" if idxtoken_selected else ("green" if govtoken_selected else ""),
                           style={
                               "display": "inline-block",
@@ -108,15 +108,15 @@ with col1:
     )
 
 if clicked != "":
-    w = str(clicked)
-    # print("setting session state to", w)
-    st.session_state['selected_token'] = w
+    st.session_state['selected_token'] = str(clicked)
     st.experimental_rerun()
 
-
 w = st.session_state['selected_token']
-if w != "":
-    row = df_sentence[df_sentence["token_id"].astype(str) == str(w)].iloc[0].to_dict()
+rows = df_sentence[df_sentence["token_id"].astype(str) == str(w)]
+if len(rows) < 1:
+    print(w, rows)
+else:
+    row = rows.iloc[0].to_dict()
     with col2:
         st.markdown(f"**Selected**: {row['string']}")
         st.markdown(f"**Lemma**: {row['lemma']}")
@@ -124,7 +124,3 @@ if w != "":
             st.markdown(f"**Definition**: {', '.join(row['definition'])}")
         if len([v for v in row["morph_features"].values() if v is not None]) > 0:
             st.write({k:v for k,v in row['morph_features'].items() if v is not None})
-
-    #st.dataframe(row[["string", "lemma", "definition", "detail"]].head(1))
-
-    #st.markdown(f"**{clicked} clicked**" if clicked != "" else "**No click**")
