@@ -18,15 +18,15 @@ st.set_page_config(
 )
 st.title("The Histories of Herodotus")
 
-df_paths = pd.read_parquet("nlp_paths.parquet")
+@st.cache_data
+def get_paths_df():
+    return pd.read_parquet("nlp_paths.parquet")
+@st.cache_data
+def get_eng_df():
+    return pd.read_parquet("herodotus_books_eng.parquet")
 
-#if 'book' not in st.session_state:
-#    st.session_state['book'] = df_paths.iloc[0].book
-#if 'chapter' not in st.session_state:
-#    st.session_state['chapter'] = df_paths.iloc[0].chapter
-#if 'section' not in st.session_state:
-#    st.session_state['section'] = df_paths.iloc[0].section
-
+df_paths = get_paths_df()
+eng_df = get_eng_df()
 
 @st.cache_data
 def get_nlp_df(book, chapter, section):
@@ -34,9 +34,6 @@ def get_nlp_df(book, chapter, section):
         (df_paths.book == str(book)) & (df_paths.chapter == str(chapter)) & (df_paths.section == str(section))].iloc[0][
         "path"]
     return pd.read_parquet(path)
-
-
-eng_df = pd.read_parquet("herodotus_books_eng.parquet")
 
 
 @st.cache_data
