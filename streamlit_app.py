@@ -53,17 +53,7 @@ col1, col2 = st.columns([3, 1])
 def reset_token():
     st.session_state['selected_token'] = ''
 
-def get_previous(book, chapter, section):
-    idx = df_paths[(df_paths.book == str(book)) & (df_paths.chapter == str(chapter)) & (
-            df_paths.section == str(section))].index[0] - 1
-    print(df_paths.loc[idx]["book"], df_paths.loc[idx]["chapter"], df_paths.loc[idx]["section"])
-    return df_paths.loc[idx]["book"], df_paths.loc[idx]["chapter"], df_paths.loc[idx]["section"]
 
-def get_next(book, chapter, section):
-    idx = df_paths[(df_paths.book == str(book)) & (df_paths.chapter == str(chapter)) & (
-            df_paths.section == str(section))].index[0] + 1
-    print(df_paths.loc[idx]["book"], df_paths.loc[idx]["chapter"], df_paths.loc[idx]["section"])
-    return df_paths.loc[idx]["book"], df_paths.loc[idx]["chapter"], df_paths.loc[idx]["section"]
 st.session_state["curr_idx"] = None
 with col1:
     frontcol, midcol, backcol = st.columns([1, 1, 1])
