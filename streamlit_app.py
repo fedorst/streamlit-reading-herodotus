@@ -94,11 +94,11 @@ def get_html_element(annot_element):
         return html.escape(annot_element)
     elif isinstance(annot_element, dict):
         selected_token = st.session_state["selected_token"]
-        idxtoken_selected = selected_token == str(annot_element["token_id"])
-        govtoken_selected = selected_token == str(annot_element["gov_id"])
+        #idxtoken_selected = selected_token == str(annot_element["token_id"])
+        #govtoken_selected = selected_token == str(annot_element["gov_id"])
         return annotation(annot_element,
-                          activated=idxtoken_selected or govtoken_selected,
-                          background="blue" if idxtoken_selected else ("green" if govtoken_selected else ""),
+                          activated=False,#idxtoken_selected or govtoken_selected,
+                          #background="blue" if idxtoken_selected else ("green" if govtoken_selected else ""),
                           style={
                               "display": "inline-block",
                               "position": "relative",
@@ -134,7 +134,7 @@ with col1:
 
 if clicked != "":
     st.session_state['selected_token'] = str(clicked)
-    st.experimental_rerun()
+    # st.experimental_rerun()
 
 w = st.session_state['selected_token']
 rows = df_grc[df_grc["token_id"].astype(str) == str(w)]
