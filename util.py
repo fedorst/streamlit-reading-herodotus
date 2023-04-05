@@ -57,7 +57,7 @@ def annotation(annot_el, activated=False, background=None, color=None, style=Non
                 # border_radius=rem(0.33),
                 padding=(rem(0.125), rem(0.5)),
                 # overflow="hidden",
-                font_size=em(1.5),
+                font_size=em(1.1),
                 **color_style,
                 **style if style is not None else {}
             ))(

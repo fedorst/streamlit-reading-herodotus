@@ -16,52 +16,89 @@ st.set_page_config(
         'Report a bug': "https://github.com/fedorst/streamlit-playground",
     }
 )
+st.title("The Histories of Herodotus")
 
-if 'book' not in st.session_state:
-    st.session_state['book'] = 1
+df_paths = pd.read_parquet("nlp_paths.parquet")
 
-all_books = [p.name.split(".parquet")[0].split("herodotus_book_")[1] for p in os.scandir() if "herodotus_book" in p.name]
+#if 'book' not in st.session_state:
+#    st.session_state['book'] = df_paths.iloc[0].book
+#if 'chapter' not in st.session_state:
+#    st.session_state['chapter'] = df_paths.iloc[0].chapter
+#if 'section' not in st.session_state:
+#    st.session_state['section'] = df_paths.iloc[0].section
+
 
 @st.cache_data
-def get_herodotus_df(book):
-    path = f"herodotus_book_{book}.parquet"
-    df_book1 = pd.read_parquet(path)
-    return df_book1
+def get_nlp_df(book, chapter, section):
+    path = df_paths[
+        (df_paths.book == str(book)) & (df_paths.chapter == str(chapter)) & (df_paths.section == str(section))].iloc[0][
+        "path"]
+    return pd.read_parquet(path)
 
-df_book = get_herodotus_df(st.session_state['book'])
 
-st.title(f"Herodotus book {st.session_state['book']}")
+eng_df = pd.read_parquet("herodotus_books_eng.parquet")
+
+
+@st.cache_data
+def get_eng_text(book, chapter, section):
+    text = eng_df[(eng_df["book"] == book) & (eng_df["chapter"] == chapter) & (eng_df["section"] == section)].text_eng
+    return "\n".join(text.tolist())
+    # path = df_paths[(df_paths.book == str(book)) & (df_paths.chapter == str(chapter)) & (df_paths.section == str(section))].iloc[0]["path"]
+    # return pd.read_parquet(path)
+
+
 col1, col2 = st.columns([3, 1])
 
-sentence_min, sentence_max = df_book.sentence.min(), df_book.sentence.max()
 
 def reset_token():
     st.session_state['selected_token'] = ''
 
+def get_previous(book, chapter, section):
+    idx = df_paths[(df_paths.book == str(book)) & (df_paths.chapter == str(chapter)) & (
+            df_paths.section == str(section))].index[0] - 1
+    print(df_paths.loc[idx]["book"], df_paths.loc[idx]["chapter"], df_paths.loc[idx]["section"])
+    return df_paths.loc[idx]["book"], df_paths.loc[idx]["chapter"], df_paths.loc[idx]["section"]
+
+def get_next(book, chapter, section):
+    idx = df_paths[(df_paths.book == str(book)) & (df_paths.chapter == str(chapter)) & (
+            df_paths.section == str(section))].index[0] + 1
+    print(df_paths.loc[idx]["book"], df_paths.loc[idx]["chapter"], df_paths.loc[idx]["section"])
+    return df_paths.loc[idx]["book"], df_paths.loc[idx]["chapter"], df_paths.loc[idx]["section"]
+st.session_state["curr_idx"] = None
 with col1:
-    frontcol, midcol, _ = st.columns([1,1,2])
+    frontcol, midcol, backcol = st.columns([1, 1, 1])
     with frontcol:
         selected_book = st.selectbox(
-            "Select book",
-            all_books,
+            "Book",
+            df_paths["book"].unique().tolist(),
+            on_change=reset_token
         )
     with midcol:
-        selected_sentence = st.number_input(
-            f'Select sentence ({sentence_min}-{sentence_max})',
-            sentence_min,
-            sentence_max,
-            on_change=reset_token)
+        selected_chapter = st.selectbox(
+            "Chapter",
+            df_paths[df_paths["book"] == selected_book]["chapter"].unique().tolist(),
+            on_change=reset_token
+        )
+    with backcol:
+        selected_section = st.selectbox(
+            "Section",
+            df_paths[(df_paths["book"] == selected_book) & (df_paths["chapter"] == selected_chapter)][
+                "section"].unique().tolist(),
+            on_change=reset_token
+        )
+    st.session_state["curr_idx"] = [selected_book, selected_chapter, selected_section]
 
-df_sentence = df_book[df_book.sentence == int(selected_sentence)]
+df_grc = get_nlp_df(*st.session_state["curr_idx"])
+text_eng = get_eng_text(*st.session_state["curr_idx"])
 
 if 'selected_token' not in st.session_state:
     st.session_state['selected_token'] = ''
+
 
 def sentence_to_annot_text(df_sentence):
     annot_elements = []
     for i, row in df_sentence.iterrows():
         annot_elements.append(row.to_dict())
-    annot_elements.append(".")
     return annot_elements
 
 
@@ -86,7 +123,7 @@ def get_html_element(annot_element):
                               "position": "absolute",
                               "left": "50%",
                               "bottom": "60%",
-                              "font-size": "0.6em",
+                              "font-size": "0.5em",
                               "white-space": "nowrap"
                           })
     else:
@@ -104,17 +141,19 @@ def construct_annotations(annot_elements):
 
 with col1:
     clicked = click_detector(
-        construct_annotations(sentence_to_annot_text(df_sentence))
+        construct_annotations(sentence_to_annot_text(df_grc))
     )
+    st.markdown(text_eng)
 
 if clicked != "":
     st.session_state['selected_token'] = str(clicked)
     st.experimental_rerun()
 
 w = st.session_state['selected_token']
-rows = df_sentence[df_sentence["token_id"].astype(str) == str(w)]
+rows = df_grc[df_grc["token_id"].astype(str) == str(w)]
 if len(rows) < 1:
-    print(w, rows)
+    pass
+    #print(w, rows)
 else:
     row = rows.iloc[0].to_dict()
     with col2:
@@ -123,4 +162,4 @@ else:
         if row["definition"] is not None:
             st.markdown(f"**Definition**: {', '.join(row['definition'])}")
         if len([v for v in row["morph_features"].values() if v is not None]) > 0:
-            st.write({k:v for k,v in row['morph_features'].items() if v is not None})
+            st.write({k: v for k, v in row['morph_features'].items() if v is not None})
