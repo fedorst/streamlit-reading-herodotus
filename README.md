@@ -3,4 +3,4 @@ This is a streamlit app that permits one to read Herodotus' histories side-by-si
 
 There are some mistakes in the hints, lemmas and definitions, but they become obvious when cross-checked against the english translation. 
 
-The app is currently live at https://fedorst-streamlit-reading-herodotus-streamlit-app-6dkzru.streamlit.app/
+The app is currently live at https://reading-herodotus.streamlit.app/
